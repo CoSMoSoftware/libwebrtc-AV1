@@ -1,36 +1,16 @@
-This is a fork of webrtc, by CoSMo software, specifically for AV1 integration
-whose original README can be read below.
+This was a fork of webrtc, by CoSMo software,
+specifically for AV1 integration
+created early 2020.
+The original code is still available in the 'backup' branch,
+but a much better implementation has now (m90) landed into libwebrtc and chrome upstream, making this code obsolete.
+
+This repository has still valuable information in its wiki section about
+ - example and tests native and web applications, 
+ - A simple but complete AV1 SVC capable SFU,
+ - End-to-End testing using KITE,
+- All unit test and KITE test for a given paragraph in the AV1 RTP Payload Specification for those who want to look at webrtc.org unit tests with a fine grain.
 
 [For more information on this fork, please see the wiki section.](https://github.com/CoSMoSoftware/libwebrtc-AV1/wiki)
 
 
------------------------------------------------------------------
 
-**WebRTC is a free, open software project** that provides browsers and mobile
-applications with Real-Time Communications (RTC) capabilities via simple APIs.
-The WebRTC components have been optimized to best serve this purpose.
-
-**Our mission:** To enable rich, high-quality RTC applications to be
-developed for the browser, mobile platforms, and IoT devices, and allow them
-all to communicate via a common set of protocols.
-
-The WebRTC initiative is a project supported by Google, Mozilla and Opera,
-amongst others.
-
-### Development
-
-See http://www.webrtc.org/native-code/development for instructions on how to get
-started developing with the native code.
-
-[Authoritative list](native-api.md) of directories that contain the
-native API header files.
-
-### More info
-
- * Official web site: http://www.webrtc.org
- * Master source code repo: https://webrtc.googlesource.com/src
- * Samples and reference apps: https://github.com/webrtc
- * Mailing list: http://groups.google.com/group/discuss-webrtc
- * Continuous build: http://build.chromium.org/p/client.webrtc
- * [Coding style guide](style-guide.md)
- * [Code of conduct](CODE_OF_CONDUCT.md)
