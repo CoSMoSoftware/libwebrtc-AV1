@@ -3,4 +3,4 @@ The executables provided in this directory have been generated from webrtc sourc
 - For Windows, use `peerconnection_client.exe` and `peerconnection_server.ese`
 - For Linux, use `peerconnection_client` and `peerconnection_server`
 
-Note: for Linux, executables have been generated on Ubuntu 20.04.
+Note: for Linux, executables can be run on Ubuntu 20.04 or 18.04.
