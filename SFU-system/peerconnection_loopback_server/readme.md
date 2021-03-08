@@ -23,7 +23,7 @@ Note: On Windows, use a Powershell command line terminal.
 
 On Windows only:
 
-    docker run -d -p "10000-10100:10000-10100/udp" -p 8084:8084 -p 8888:8888  --name webapp multiopus-webapp <your_ip_address>
+    docker run -d -p "10000-10100:10000-10100/udp" -p 8084:8084 -p 8888:8888 --name webapp multiopus-webapp <your_ip_address>
 
 On Linux only:
 
