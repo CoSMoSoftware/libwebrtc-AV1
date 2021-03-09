@@ -17,7 +17,6 @@ Tested on webrtc commit 1413e
         Commit-Queue: webrtc-version-updater@webrtc-ci.iam.gserviceaccount.com <webrtc-version-updater@webrtc-ci.iam.gserviceaccount.com>
         Cr-Commit-Position: refs/heads/master@{#33387}
 
-
 ## Get webrtc source code
 
     mkdir webrtc

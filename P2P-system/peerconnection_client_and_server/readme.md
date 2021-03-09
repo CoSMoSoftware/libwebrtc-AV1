@@ -17,7 +17,7 @@ Two computers (let call them A and B) are needed. Each computer needs to have a 
 
 ![peerconnection_client A](http://ludo17.free.fr/av1_svc_demo/client_localhost.png) Example on Linux.
 
-Keep `localhost` for server as `pwerconnection_server` is running on this computer.
+Keep `localhost` for server as `perconnection_server` is running on this computer.
 
 Click button `Connect`.
 
