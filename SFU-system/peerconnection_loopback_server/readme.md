@@ -34,17 +34,17 @@ On Linux only:
 - Launch Google Chrome
 - Open URL https://your_ip_address:8084/
 
-[Chrome not secure](http://ludo17.free.fr/av1_svc_demo/chrome_not_secure.png)
+![Chrome not secure](http://ludo17.free.fr/av1_svc_demo/chrome_not_secure.png)
 
 Click on button `Advanced`.
 
-[Chrome not secure 2](http://ludo17.free.fr/av1_svc_demo/chrome_not_secure2.png)
+![Chrome not secure 2](http://ludo17.free.fr/av1_svc_demo/chrome_not_secure2.png)
 
 Click on text `Proceed to <your_ip_address> (unsafe)`
 
-[Chrome list of demos](http://ludo17.free.fr/av1_svc_demo/chrome_demos.png)
+![Chrome list of demos](http://ludo17.free.fr/av1_svc_demo/chrome_demos.png)
 
 
 - Click on "AV1 SVC"
 
-[Chrome AV1 SVC demo](http://ludo17.free.fr/av1_svc_demo/chrome_av1_svc_demo.png)
+![Chrome AV1 SVC demo](http://ludo17.free.fr/av1_svc_demo/chrome_av1_svc_demo.png)
