@@ -19,15 +19,15 @@ Note: On Windows, use a Powershell command line terminal.
     cp ~/.ssh/id_rsa .
     cp ~/.ssh/id_rsa.pub .
     cp ~/.ssh/known_hosts .
-    docker build . -t multiopus-webapp
+    docker build . -t medooze-server
 
-On Windows only:
+On Windows or Mac:
 
-    docker run -d -p "10000-10100:10000-10100/udp" -p 8084:8084 -p 8888:8888 --name webapp multiopus-webapp <your_ip_address>
+    docker run -d -p "10000-10100:10000-10100/udp" -p 8084:8084 -p 8888:8888 --name medooze medooze-server <your_ip_address>
 
 On Linux only:
 
-    docker run -d --network host --name webapp multiopus-webapp <your_ip_address>
+    docker run -d --network host --name medooze medooze-server <your_ip_address>
 
 ## Start loopback server
 
