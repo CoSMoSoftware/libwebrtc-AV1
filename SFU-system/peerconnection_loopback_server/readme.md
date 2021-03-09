@@ -2,23 +2,9 @@
 
 The loopback server is provided in this directory as a docker in the file `Dockerfile`.
 
-Installation and running of the loopback server requires access to the following github repositories:
-- public repository `CoSMoSoftware/media-server-node`
-- private repository  `CoSMoSoftware/POC-medooze-multiopus-loopback-web-app`
-
-To get access to these repositories during installation of the docker file, you need:
-1. SSH key associated with your github account
-2. Finger print of github must be in your file `~/.ssh/lnown_hosts`
-
 ## Run Dockerfile
 
-Note: On Windows, use a Powershell command line terminal.
-
     // Move to directory where you put file “Dockerfile”
-    // Copy github SSH keys (assuming they are stored in files named id_rsa)
-    cp ~/.ssh/id_rsa .
-    cp ~/.ssh/id_rsa.pub .
-    cp ~/.ssh/known_hosts .
     docker build . -t medooze-server
 
 On Windows or Mac:
