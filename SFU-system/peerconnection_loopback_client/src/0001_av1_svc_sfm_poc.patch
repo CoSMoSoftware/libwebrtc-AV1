@@ -1,0 +1,317 @@
+diff --git a/examples/peerconnection/client/conductor.cc b/examples/peerconnection/client/conductor.cc
+index 005a9d6ddf..cd7c94d301 100644
+--- a/examples/peerconnection/client/conductor.cc
++++ b/examples/peerconnection/client/conductor.cc
+@@ -175,9 +175,12 @@ bool Conductor::CreatePeerConnection(bool dtls) {
+   RTC_DCHECK(peer_connection_factory_);
+   RTC_DCHECK(!peer_connection_);
+ 
+-  webrtc::PeerConnectionInterface::RTCConfiguration config;
++  webrtc::PeerConnectionInterface::RTCConfiguration config(
++      webrtc::PeerConnectionInterface::RTCConfigurationType::kAggressive);
+   config.sdp_semantics = webrtc::SdpSemantics::kUnifiedPlan;
+   config.enable_dtls_srtp = dtls;
++  config.offer_extmap_allow_mixed = true;
++  config.set_cpu_adaptation(false);
+   webrtc::PeerConnectionInterface::IceServer server;
+   server.uri = GetPeerConnectionString();
+   config.servers.push_back(server);
+@@ -440,10 +443,10 @@ void Conductor::AddTracks() {
+       peer_connection_factory_->CreateAudioTrack(
+           kAudioLabel, peer_connection_factory_->CreateAudioSource(
+                            cricket::AudioOptions())));
+-  auto result_or_error = peer_connection_->AddTrack(audio_track, {kStreamId});
+-  if (!result_or_error.ok()) {
++  auto result_or_error_audio = peer_connection_->AddTrack(audio_track, {kStreamId});
++  if (!result_or_error_audio.ok()) {
+     RTC_LOG(LS_ERROR) << "Failed to add audio track to PeerConnection: "
+-                      << result_or_error.error().message();
++                      << result_or_error_audio.error().message();
+   }
+ 
+   rtc::scoped_refptr<CapturerTrackSource> video_device =
+@@ -453,11 +456,23 @@ void Conductor::AddTracks() {
+         peer_connection_factory_->CreateVideoTrack(kVideoLabel, video_device));
+     main_wnd_->StartLocalRenderer(video_track_);
+ 
+-    result_or_error = peer_connection_->AddTrack(video_track_, {kStreamId});
+-    if (!result_or_error.ok()) {
++    webrtc::RtpTransceiverInit video_init;
++    video_init.stream_ids.push_back(kStreamId);
++    video_init.direction = webrtc::RtpTransceiverDirection::kSendRecv;
++    webrtc::RtpEncodingParameters svc;
++    svc.max_bitrate_bps = 4000000;
++    svc.min_bitrate_bps = 2000000;
++    if (!scalability_mode_.empty()) {
++      svc.scalability_mode = scalability_mode_;
++    }
++    video_init.send_encodings.push_back(svc);
++    auto result_or_error_video =
++        peer_connection_->AddTransceiver(video_track_, video_init);
++    if (!result_or_error_video.ok()) {
+       RTC_LOG(LS_ERROR) << "Failed to add video track to PeerConnection: "
+-                        << result_or_error.error().message();
++                        << result_or_error_video.error().message();
+     }
++
+   } else {
+     RTC_LOG(LS_ERROR) << "OpenVideoCaptureDevice failed";
+   }
+diff --git a/examples/peerconnection/client/conductor.h b/examples/peerconnection/client/conductor.h
+index 3c06857a05..5733fb9e51 100644
+--- a/examples/peerconnection/client/conductor.h
++++ b/examples/peerconnection/client/conductor.h
+@@ -44,7 +44,9 @@ class Conductor : public webrtc::PeerConnectionObserver,
+   };
+ 
+   Conductor(PeerConnectionClient* client, MainWindow* main_wnd);
+-
++  void SetScalabilityMode(const std::string& scalability_mode) {
++    scalability_mode_ = scalability_mode;
++  }
+   bool connection_active() const;
+ 
+   void Close() override;
+@@ -58,6 +60,7 @@ class Conductor : public webrtc::PeerConnectionObserver,
+   void EnsureStreamingUI();
+   void AddTracks();
+ 
++
+   //
+   // PeerConnectionObserver implementation.
+   //
+@@ -129,6 +132,7 @@ class Conductor : public webrtc::PeerConnectionObserver,
+   MainWindow* main_wnd_;
+   std::deque<std::string*> pending_messages_;
+   std::string server_;
++  std::string scalability_mode_;
+ };
+ 
+ #endif  // EXAMPLES_PEERCONNECTION_CLIENT_CONDUCTOR_H_
+diff --git a/examples/peerconnection/client/flag_defs.h b/examples/peerconnection/client/flag_defs.h
+index 986daf64ce..638a6796e8 100644
+--- a/examples/peerconnection/client/flag_defs.h
++++ b/examples/peerconnection/client/flag_defs.h
+@@ -49,4 +49,10 @@ ABSL_FLAG(
+     "will assign the group Enabled to field trial WebRTC-FooFeature. Multiple "
+     "trials are separated by \"/\"");
+ 
++ ABSL_FLAG(
++    std::string,
++    scalability_mode,
++    "NONE",
++    "Set SVC scalability mode for sending video track.");
++
+ #endif  // EXAMPLES_PEERCONNECTION_CLIENT_FLAG_DEFS_H_
+diff --git a/examples/peerconnection/client/linux/main.cc b/examples/peerconnection/client/linux/main.cc
+index ccca7b1c7c..a7ab4e563c 100644
+--- a/examples/peerconnection/client/linux/main.cc
++++ b/examples/peerconnection/client/linux/main.cc
+@@ -103,6 +103,10 @@ int main(int argc, char* argv[]) {
+   PeerConnectionClient client;
+   rtc::scoped_refptr<Conductor> conductor(
+       new rtc::RefCountedObject<Conductor>(&client, &wnd));
++
++  const std::string scalability_mode = absl::GetFlag(FLAGS_scalability_mode);
++  conductor->SetScalabilityMode(scalability_mode);
++
+   socket_server.set_client(&client);
+   socket_server.set_conductor(conductor);
+ 
+diff --git a/examples/peerconnection/client/main.cc b/examples/peerconnection/client/main.cc
+index cc8bdfbd76..fdea15688e 100644
+--- a/examples/peerconnection/client/main.cc
++++ b/examples/peerconnection/client/main.cc
+@@ -112,6 +112,9 @@ int PASCAL wWinMain(HINSTANCE instance,
+   rtc::scoped_refptr<Conductor> conductor(
+       new rtc::RefCountedObject<Conductor>(&client, &wnd));
+ 
++  const std::string scalability_mode = absl::GetFlag(FLAGS_scalability_mode);
++  conductor->SetScalabilityMode(scalability_mode);
++
+   // Main loop.
+   MSG msg;
+   BOOL gm;
+diff --git a/examples/peerconnection/client/main_wnd.cc b/examples/peerconnection/client/main_wnd.cc
+index afafa621b3..fee11fccf6 100644
+--- a/examples/peerconnection/client/main_wnd.cc
++++ b/examples/peerconnection/client/main_wnd.cc
+@@ -278,21 +278,30 @@ void MainWnd::OnPaint() {
+       StretchDIBits(dc_mem, x, y, width, height, 0, 0, width, height, image,
+                     &bmi, DIB_RGB_COLORS, SRCCOPY);
+ 
++      std::string video_size = std::string("Remote: ") + std::to_string(width) +
++                               "x" + std::to_string(height) + " fps:" +
++                               std::to_string(remote_renderer->GetFps());
++
+       if ((rc.right - rc.left) > 200 && (rc.bottom - rc.top) > 200) {
+         const BITMAPINFO& bmi = local_renderer->bmi();
+         image = local_renderer->image();
+-        int thumb_width = bmi.bmiHeader.biWidth / 4;
+-        int thumb_height = abs(bmi.bmiHeader.biHeight) / 4;
++        int thumb_width = width / 4;
++        int thumb_height = height / 4;
+         StretchDIBits(dc_mem, logical_area.x - thumb_width - 10,
+                       logical_area.y - thumb_height - 10, thumb_width,
+                       thumb_height, 0, 0, bmi.bmiHeader.biWidth,
+                       -bmi.bmiHeader.biHeight, image, &bmi, DIB_RGB_COLORS,
+                       SRCCOPY);
++        video_size += "\r\n" + std::string("Local: ") +
++                      std::to_string(bmi.bmiHeader.biWidth) + "x" +
++                      std::to_string(-bmi.bmiHeader.biHeight) +
++                      " fps:" + std::to_string(local_renderer->GetFps());
+       }
+ 
+       BitBlt(ps.hdc, 0, 0, logical_area.x, logical_area.y, dc_mem, 0, 0,
+              SRCCOPY);
+-
++      ::DrawTextA(ps.hdc, video_size.c_str(), -1, &rc,
++                  DT_SINGLELINE | DT_TOP | DT_LEFT);
+       // Cleanup.
+       ::SelectObject(dc_mem, bmp_old);
+       ::DeleteObject(bmp_mem);
+@@ -313,8 +322,7 @@ void MainWnd::OnPaint() {
+       } else {
+         text += kNoIncomingStream;
+       }
+-      ::DrawTextA(ps.hdc, text.c_str(), -1, &rc,
+-                  DT_SINGLELINE | DT_CENTER | DT_VCENTER);
++      ::DrawTextA(ps.hdc, text.c_str(), -1, &rc, DT_CENTER | DT_VCENTER);
+       ::SelectObject(ps.hdc, old_font);
+     }
+   } else {
+@@ -577,7 +585,7 @@ MainWnd::VideoRenderer::VideoRenderer(
+     int width,
+     int height,
+     webrtc::VideoTrackInterface* track_to_render)
+-    : wnd_(wnd), rendered_track_(track_to_render) {
++    : wnd_(wnd), rendered_track_(track_to_render), fps_(100, 10u) {
+   ::InitializeCriticalSection(&buffer_lock_);
+   ZeroMemory(&bmi_, sizeof(bmi_));
+   bmi_.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+@@ -612,6 +620,8 @@ void MainWnd::VideoRenderer::SetSize(int width, int height) {
+ 
+ void MainWnd::VideoRenderer::OnFrame(const webrtc::VideoFrame& video_frame) {
+   {
++    fps_.AddSamples(1);
++
+     AutoLock<VideoRenderer> lock(this);
+ 
+     rtc::scoped_refptr<webrtc::I420BufferInterface> buffer(
+diff --git a/examples/peerconnection/client/main_wnd.h b/examples/peerconnection/client/main_wnd.h
+index 898fea9d92..638ecc0f00 100644
+--- a/examples/peerconnection/client/main_wnd.h
++++ b/examples/peerconnection/client/main_wnd.h
+@@ -20,6 +20,7 @@
+ #include "examples/peerconnection/client/peer_connection_client.h"
+ #include "media/base/media_channel.h"
+ #include "media/base/video_common.h"
++#include "rtc_base/rate_tracker.h"
+ #if defined(WEBRTC_WIN)
+ #include "rtc_base/win32.h"
+ #endif  // WEBRTC_WIN
+@@ -122,6 +123,8 @@ class MainWnd : public MainWindow {
+     const BITMAPINFO& bmi() const { return bmi_; }
+     const uint8_t* image() const { return image_.get(); }
+ 
++    int GetFps() const { return static_cast<int>(fps_.ComputeRate()); }
++
+    protected:
+     void SetSize(int width, int height);
+ 
+@@ -135,6 +138,7 @@ class MainWnd : public MainWindow {
+     std::unique_ptr<uint8_t[]> image_;
+     CRITICAL_SECTION buffer_lock_;
+     rtc::scoped_refptr<webrtc::VideoTrackInterface> rendered_track_;
++    rtc::RateTracker fps_;
+   };
+ 
+   // A little helper class to make sure we always to proper locking and
+diff --git a/media/engine/internal_decoder_factory.cc b/media/engine/internal_decoder_factory.cc
+index 1c084846a2..589253739c 100644
+--- a/media/engine/internal_decoder_factory.cc
++++ b/media/engine/internal_decoder_factory.cc
+@@ -43,13 +43,14 @@ bool IsFormatSupported(
+ std::vector<SdpVideoFormat> InternalDecoderFactory::GetSupportedFormats()
+     const {
+   std::vector<SdpVideoFormat> formats;
+-  formats.push_back(SdpVideoFormat(cricket::kVp8CodecName));
+-  for (const SdpVideoFormat& format : SupportedVP9DecoderCodecs())
+-    formats.push_back(format);
+-  for (const SdpVideoFormat& h264_format : SupportedH264Codecs())
+-    formats.push_back(h264_format);
++  // formats.push_back(SdpVideoFormat(cricket::kVp8CodecName));
++  // for (const SdpVideoFormat& format : SupportedVP9DecoderCodecs())
++  //   formats.push_back(format);
++  // for (const SdpVideoFormat& h264_format : SupportedH264Codecs())
++  //   formats.push_back(h264_format);
+   if (kIsLibaomAv1DecoderSupported)
+-    formats.push_back(SdpVideoFormat(cricket::kAv1CodecName));
++    formats.push_back(SdpVideoFormat(cricket::kAv1CodecName,
++                                     {{"profile", "0"}, {"level-idx", "5"}}));
+   return formats;
+ }
+ 
+diff --git a/media/engine/internal_encoder_factory.cc b/media/engine/internal_encoder_factory.cc
+index 738516eafc..7187bfc8aa 100644
+--- a/media/engine/internal_encoder_factory.cc
++++ b/media/engine/internal_encoder_factory.cc
+@@ -26,13 +26,14 @@ namespace webrtc {
+ 
+ std::vector<SdpVideoFormat> InternalEncoderFactory::SupportedFormats() {
+   std::vector<SdpVideoFormat> supported_codecs;
+-  supported_codecs.push_back(SdpVideoFormat(cricket::kVp8CodecName));
+-  for (const webrtc::SdpVideoFormat& format : webrtc::SupportedVP9Codecs())
+-    supported_codecs.push_back(format);
+-  for (const webrtc::SdpVideoFormat& format : webrtc::SupportedH264Codecs())
+-    supported_codecs.push_back(format);
++  // supported_codecs.push_back(SdpVideoFormat(cricket::kVp8CodecName));
++  // for (const webrtc::SdpVideoFormat& format : webrtc::SupportedVP9Codecs())
++  //   supported_codecs.push_back(format);
++  // for (const webrtc::SdpVideoFormat& format : webrtc::SupportedH264Codecs())
++  //   supported_codecs.push_back(format);
+   if (kIsLibaomAv1EncoderSupported)
+-    supported_codecs.push_back(SdpVideoFormat(cricket::kAv1CodecName));
++    supported_codecs.push_back(SdpVideoFormat(
++        cricket::kAv1CodecName, {{"profile", "0"}, {"level-idx", "5"}}));
+   return supported_codecs;
+ }
+ 
+diff --git a/modules/video_coding/svc/svc_rate_allocator.cc b/modules/video_coding/svc/svc_rate_allocator.cc
+index a51bdb05dd..2e8284dbfd 100644
+--- a/modules/video_coding/svc/svc_rate_allocator.cc
++++ b/modules/video_coding/svc/svc_rate_allocator.cc
+@@ -209,10 +209,12 @@ SvcRateAllocator::SvcRateAllocator(const VideoCodec& codec)
+       RTC_DCHECK_GT(codec.spatialLayers[layer_idx].maxBitrate, 0);
+       RTC_DCHECK_GE(codec.spatialLayers[layer_idx].maxBitrate,
+                     codec.spatialLayers[layer_idx].minBitrate);
+-      RTC_DCHECK_GE(codec.spatialLayers[layer_idx].targetBitrate,
+-                    codec.spatialLayers[layer_idx].minBitrate);
+-      RTC_DCHECK_GE(codec.spatialLayers[layer_idx].maxBitrate,
+-                    codec.spatialLayers[layer_idx].targetBitrate);
++      if (codec.spatialLayers[layer_idx].targetBitrate != 0) {
++        RTC_DCHECK_GE(codec.spatialLayers[layer_idx].targetBitrate,
++                      codec.spatialLayers[layer_idx].minBitrate);
++        RTC_DCHECK_GE(codec.spatialLayers[layer_idx].maxBitrate,
++                      codec.spatialLayers[layer_idx].targetBitrate);
++      }
+     }
+   }
+ }
+diff --git a/pc/media_session.cc b/pc/media_session.cc
+index caf2458676..f1fda9fa22 100644
+--- a/pc/media_session.cc
++++ b/pc/media_session.cc
+@@ -798,6 +798,12 @@ static void NegotiateCodecs(const std::vector<C>& local_codecs,
+         webrtc::H264::GenerateProfileLevelIdForAnswer(
+             ours.params, theirs.params, &negotiated.params);
+       }
++      if (absl::EqualsIgnoreCase(ours.name, kAv1CodecName)) {
++        if (theirs.params["profile"] != "0" ||
++            theirs.params["level-idx"] != "5") {
++          continue;
++        }
++      }
+       negotiated.id = theirs.id;
+       negotiated.name = theirs.name;
+       negotiated_codecs->push_back(std::move(negotiated));
