@@ -2,9 +2,9 @@
 
 libwebrtc provides for Windows and Linux platforms a simple tool called `peerconnection_client` able to launch a video call between two peers through WebRTC.
 
-In `src`, we provide the information to retrieve the source code of libwebrtc, a patch to enable AV1 SVC, and instructions for applying the patch and compile libwebrtc.
+In `src`, we provide the information to retrieve the source code of libwebrtc, a patch to enable AV1 and make it the default and only availabke codec, and instructions for applying the patch and compile libwebrtc.
 
-In `bin`, we provide the executables `peerconnection_client` and `peerconnection_server` pre-compiled for Windows and Linux with AV1 SVC activated.
+In `bin`, we provide the executables `peerconnection_client` and `peerconnection_server` pre-compiled for Windows and Linux with AV1 activated and set as default and only available codec.
 
 In `kite_tests`, we provide the source code for KITE tests.
 
