@@ -1,4 +1,6 @@
-# Source code + patch 0001_av1_svc_sfm_poc.patch
+# Source code + patch 0001_av1_p2p.patch
+
+To make sure that codec AV1 will be selected by peerconnection_client, patch 0001_av1_p2p.patch modifies the list of video codec that are exchanged during negotiation. The modified list contains only one codec: AV1.
 
 Tested on webrtc commit 1413e
 
@@ -26,9 +28,9 @@ Tested on webrtc commit 1413e
     git checkout 1413e2
     gclient sync
 
-Apply patch 0001_av1_svc_sfm_poc.patch
+Apply patch 0001_av1_p2p.patch
 
-    git apply --ignore-space-change --ignore-whitespace --whitespace=nowarn 0001_av1_svc_sfm_poc.patch
+    git apply --ignore-space-change --ignore-whitespace --whitespace=nowarn 0001_av1_p2p.patch
 
 ## Compile
 
