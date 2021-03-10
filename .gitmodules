@@ -1,3 +1,6 @@
 [submodule "P2P-system/peerconnection_client_and_server/kite_tests/KITE-AV1-PeerConnection-Test"]
 	path = P2P-system/peerconnection_client_and_server/kite_tests/KITE-AV1-PeerConnection-Test
 	url = https://github.com/CoSMoSoftware/KITE-AV1-PeerConnection-Test
+[submodule "SFU-system/peerconnection_loopback_client/kite_tests/KITE-PeerConnection-Medooze-Test"]
+	path = SFU-system/peerconnection_loopback_client/kite_tests/KITE-PeerConnection-Medooze-Test
+	url = https://github.com/CoSMoSoftware/KITE-PeerConnection-Medooze-Test
