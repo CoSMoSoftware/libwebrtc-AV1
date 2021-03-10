@@ -1,0 +1,3 @@
+[submodule "P2P-system/peerconnection_client_and_server/kite_tests/KITE-AV1-PeerConnection-Test"]
+	path = P2P-system/peerconnection_client_and_server/kite_tests/KITE-AV1-PeerConnection-Test
+	url = https://github.com/CoSMoSoftware/KITE-AV1-PeerConnection-Test
