@@ -55,7 +55,7 @@ kite_c
       "browserName": "app",
       "app": "C:\\Appium\\peerconnection\\av1\\peerconnection_client.exe", binary path
       "appWorkingDir": "C:\\Appium\\peerconnection\\av1", working directory
-      "appArguments": "--scalability_mode=L3T3  --server=sgmedooze.cosmosoftware.io --autoconnect=true  --force_fieldtrials=WebRTC-DependencyDescriptorAdvertised/Enabled/", replace sgmedooze.cosmosoftware.io with Windows A IP Address
+      "appArguments": "--scalability_mode=L3T3  --server=sgmedooze.cosmosoftware.io --force_fieldtrials=WebRTC-DependencyDescriptorAdvertised/Enabled/", replace sgmedooze.cosmosoftware.io with Windows A IP Address
       "deviceName": "WINDOWS",
       "maxInstances": 1,
       "platform": "WINDOWS"
@@ -88,6 +88,11 @@ There are few parameters to change.
   ]
 ```
 ```
+"payload": {
+        "url": "https://sgmedooze.cosmosoftware.io/av1svc/" replace sgmedooze.cosmosoftware.io with Windows A IP Address (and https to http)
+}
+``` 
+```
 "clients": [
 {
       "browserName": "app",
@@ -98,7 +103,7 @@ There are few parameters to change.
         "appWorkingDir": "C:\\Appium\\peerconnection\\av1" replace path by absolute path of working directory on Windows A
       },
       "extraCapabilities": {
-        "appArguments": "--scalability_mode=L3T3  --server=sgmedooze.cosmosoftware.io --autoconnect=true  --force_fieldtrials=WebRTC-DependencyDescriptorAdvertised/Enabled/"replace sgmedooze.cosmosoftware.io with Windows A IP Address
+        "appArguments": "--scalability_mode=L3T3  --server=sgmedooze.cosmosoftware.io --force_fieldtrials=WebRTC-DependencyDescriptorAdvertised/Enabled/" replace sgmedooze.cosmosoftware.io with Windows A IP Address
       }
     }
 ]
