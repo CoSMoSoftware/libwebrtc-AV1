@@ -1,4 +1,8 @@
-# KITE Engine
+# KITE Dashboard
+
+This docker image contains a dashboard and a FTP server that can be used to automatically upload kite tests results after each test. 
+
+## Build
 
   docker build . -t kite
 
@@ -19,3 +23,24 @@ Windows and Mac:
 Linux only:
 
     docker run -d --network host --name kite kite
+
+## Use
+
+In the config files of any KITE test, you can add these parameters.
+```
+  "callbackUrl": "localhost",
+  "callbackPort": 2221,
+  "callbackUsername" : "user",
+  "callbackPassword": "password",
+```
+The results will be available at http://localhost:8080/kdash
+
+
+If you want to upload to the provided dashboard for av1, here are the parameters.
+```
+  "callbackUrl": "kdash.av1.cosmosoftware.io",
+  "callbackPort": 2221,
+  "callbackUsername" : "cosmouser",
+  "callbackPassword": "CSmu1;'_",
+```
+The results will be available at https://kdash.av1.cosmosoftware.io
